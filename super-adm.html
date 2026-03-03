@@ -56,17 +56,23 @@
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
     .btn-outline:hover { background: var(--surface-hover); color: var(--text); }
     
+    /* Icon Buttons */
     .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--text-secondary); transition: var(--transition); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .btn-icon:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border); transform: scale(1.05); }
-    .btn-icon.renew:hover { color: var(--info); border-color: var(--info); background: rgba(59,130,246,0.1); }
-    .btn-icon.del:hover { color: var(--danger); border-color: var(--danger); background: rgba(239,68,68,0.1); }
-    .btn-icon.lock:hover { color: var(--warning); border-color: var(--warning); background: rgba(245,158,11,0.1); }
+    
+    /* Cores Específicas dos Ícones */
     .btn-icon.pic:hover { color: #a855f7; border-color: #a855f7; background: rgba(168,85,247,0.1); }
-    .btn-icon.backup:hover { color: #10b981; border-color: #10b981; background: rgba(16,185,129,0.1); } /* Novo Botão Backup */
+    .btn-icon.renew:hover { color: var(--info); border-color: var(--info); background: rgba(59,130,246,0.1); }
+    .btn-icon.lock:hover { color: var(--warning); border-color: var(--warning); background: rgba(245,158,11,0.1); }
+    .btn-icon.del:hover { color: var(--danger); border-color: var(--danger); background: rgba(239,68,68,0.1); }
+    
+    /* Botão Backup Fixo a Verde para destacar */
+    .btn-icon.backup { color: var(--success); background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2); }
+    .btn-icon.backup:hover { color: #fff; border-color: var(--success); background: var(--success); }
 
     /* Table (Preparada para Mobile) */
     .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    table { width: 100%; border-collapse: collapse; min-width: 780px; }
+    table { width: 100%; border-collapse: collapse; min-width: 850px; }
     th { padding: 15px 20px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; border-bottom: 2px solid var(--border); letter-spacing: 0.5px; white-space: nowrap; }
     td { padding: 15px 20px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: middle; transition: var(--transition); white-space: nowrap; }
     tbody tr:hover td { background: rgba(255,255,255,0.02); }
@@ -117,7 +123,7 @@
       .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
       .card-body { padding: 15px; }
       th, td { padding: 12px 15px; }
-      .btn-icon { width: 32px; height: 32px; }
+      .btn-icon { width: 34px; height: 34px; }
       .hide-mobile { display: none; }
     }
   </style>
@@ -381,11 +387,10 @@
       let corBadge = isVencido ? 'bg-red' : (c.status === 'bloqueado' ? 'bg-gray' : 'bg-green');
       const logoThumb = c.logo_url ? c.logo_url : DEFAULT_LOGO;
 
-      // Update Stats
       if (isVencido) stats.vencidos++;
       else if (c.status === 'ativo') stats.ativos++;
 
-      // Ícones para botões
+      // SVGs dos ícones
       const iconPic = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
       const iconDate = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
       const iconLock = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`;
@@ -420,7 +425,6 @@
       `;
     }).join('');
 
-    // Atualiza contadores
     document.getElementById('statTotal').textContent = stats.total;
     document.getElementById('statAtivos').textContent = stats.ativos;
     document.getElementById('statVencidos').textContent = stats.vencidos;
@@ -432,15 +436,13 @@
     carregarClientes();
   }
 
-
   // ==========================================
-  // GERAR BACKUP COMPLETO DO CLIENTE (JSON)
+  // EXPORTAR BACKUP (RÁPIDO)
   // ==========================================
   async function gerarBackup(id, nome_empresa) {
-    showToast(`A gerar backup de ${nome_empresa}... Aguarde.`, 'info');
+    showToast(`A gerar backup de ${nome_empresa}... Por favor, aguarde.`, 'info');
     
     try {
-      // 1. Estrutura do Backup
       let backupObj = {
         cliente: nome_empresa,
         id_tenant: id,
@@ -448,32 +450,33 @@
         dados: {}
       };
 
-      // 2. Extrair dados da conta principal
+      // Puxa a conta
       const { data: contaInfo } = await sb.from('usuarios_clientes').select('*').eq('id', id).single();
       backupObj.dados['conta_acesso'] = contaInfo;
 
-      // 3. Lista de tabelas a varrer filtrando pelo empresa_id
+      // Array de tabelas a procurar
       const tabelas = [
         'clientes', 'avalistas', 'micro_negocios', 'operacoes', 
         'parcelas', 'avaliacao_financeira', 'fluxo_caixa', 
         'renovacoes', 'historico_cobrancas', 'inadimplencia'
       ];
 
-      // 4. Faz o download massivo
-      for (const tabela of tabelas) {
-        const { data } = await sb.from(tabela).select('*').eq('empresa_id', id);
-        backupObj.dados[tabela] = data || [];
-      }
+      // Faz os pedidos todos em simultâneo (MUITO MAIS RÁPIDO)
+      const promises = tabelas.map(tabela => sb.from(tabela).select('*').eq('empresa_id', id));
+      const results = await Promise.all(promises);
 
-      // 5. Converter o Objeto para formato de Ficheiro JSON
-      const jsonStr = JSON.stringify(backupObj, null, 2); // O "2" faz o código ficar formatado bonitinho
+      // Associa os resultados ao JSON
+      tabelas.forEach((tabela, index) => {
+         backupObj.dados[tabela] = results[index].data || [];
+      });
+
+      // Transforma em ficheiro de texto
+      const jsonStr = JSON.stringify(backupObj, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       
-      // 6. Criar e clicar no link de download automático
       const a = document.createElement('a');
       a.href = url;
-      // Nome do arquivo limpo
       const nomeSeguro = nome_empresa.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
       a.download = `backup_${nomeSeguro}_${new Date().toISOString().slice(0,10)}.json`;
       
@@ -482,7 +485,7 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showToast(`Backup concluído e transferido com sucesso!`, 'success');
+      showToast(`Backup de ${nome_empresa} transferido!`, 'success');
 
     } catch (e) {
       showToast(`Erro ao gerar backup: ${e.message}`, 'error');
@@ -553,14 +556,12 @@
     btn.textContent = "A apagar dados..."; btn.disabled = true;
 
     try {
-      // 1. Limpa a logo do Storage
       const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', id).single();
       if (currentData && currentData.logo_url && currentData.logo_url.includes('/storage/v1/object/public/imagens/logos/')) {
         const filePath = currentData.logo_url.split('/public/imagens/')[1];
         if (filePath) await sb.storage.from('imagens').remove([filePath]);
       }
 
-      // 2. Elimina da Tabela (O CASCADE apaga os clientes dele)
       const { error } = await sb.from('usuarios_clientes').delete().eq('id', id);
       if(error) throw error;
 
